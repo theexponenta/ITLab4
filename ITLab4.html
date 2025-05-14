@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="ITLab4.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+    </head>
+    <body>
+        <div class="jumbotron">
+            <label for="rails" class="h3">ЭЦП DSA</label>
+
+            <div class="form-group">
+                <!--<label for="message" class="h4">Данные</label>
+                <textarea class="form-control text-monospace" rows="4" id="message" spellcheck="false" readonly></textarea>-->
+                <div><label id="filename">Файл не выбран</label></div>
+                <input type="file" id="file_input" style="display: none;" />
+                <button class="btn btn-success mt-1" id="load_from_file_for_encode">Загрузить файл для подписи</button>
+                <button class="btn btn-success mt-1" id="load_from_file_for_decode">Загрузить файл для проверки</button>
+            </div>
+
+            <div class="result-container">
+                <div class="form-line">
+                    <div class="form-labeledinput-container">
+                        <label class="h4" id="resultlabel">Подпись</label>
+                        <input class="form-control text-monospace" rows="3" id="signature" spellcheck="false"/>
+                    </div>
+                    
+                    <div class="form-labeledinput-container">
+                        <label class="h4">Хеш</label>
+                        <input class="form-control text-monospace" rows="3" id="hash" disabled spellcheck="false"/>
+                    </div>
+
+                    <div class="form-labeledinput-container">
+                        <label class="h4" id="resultlabel">y</label>
+                        <input class="form-control text-monospace" rows="3" id="param_y" spellcheck="false"/>
+                    </div>
+                </div>
+
+                <button class="btn btn-success mt-1" id="save_to_file">Сохранить подписанный файл</button>
+            </div>
+        
+            <div id="options" class="form-group">
+                <div class="form-line">
+                    <div class="form-labeledinput-container">
+                        <label for="p" class="h4">q</label>
+                        <input class="form-control" id="param_q" />
+                    </div>
+
+                    <div class="form-labeledinput-container">
+                        <label for="q" class="h4">p</label>
+                        <input class="form-control" id="param_p" />
+                    </div>
+
+                    <div class="form-labeledinput-container">
+                        <label for="b" class="h4">h</label>
+                        <input class="form-control" id="param_h" />
+                    </div>
+
+                    <div class="form-labeledinput-container">
+                        <label for="b" class="h4">x</label>
+                        <input class="form-control" id="param_x" />
+                    </div>
+
+                    <div class="form-labeledinput-container">
+                        <label for="b" class="h4">k</label>
+                        <input class="form-control" id="param_k" />
+                    </div>
+                </div>
+
+                <button class="btn btn-success mt-1" id="sign_button">Подписать</button>
+                <button class="btn btn-success mt-1" id="check_button">Проверить подпись</button>
+            </div>
+        </div>
+    </body>
+
+    <style>
+        .errortext {
+            color: red;
+            display: block;
+        }
+
+        *,::after,::before{
+            box-sizing:border-box;
+        }
+
+        .form-line {
+            display: flex;
+            flex-direction: row;
+            column-gap: 10px;
+        }
+
+        h2,h3{
+            margin-top:0;
+            margin-bottom:.5rem;
+        }
+        pre{
+            font-family:SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+            font-size:1em;
+        }
+        pre{
+            margin-top:0;
+            margin-bottom:1rem;
+            overflow:auto;
+        }
+        label{
+            display:inline-block;
+            margin-bottom:.5rem;
+        }
+        button{
+            border-radius:0;
+        }
+        button:focus{
+            outline:1px dotted;
+            outline:5px auto -webkit-focus-ring-color;
+        }
+        button,input,textarea{
+            margin:0;
+            font-family:inherit;
+            font-size:inherit;
+            line-height:inherit;
+        }
+        button,input{
+            overflow:visible;
+        }
+        button{
+            text-transform:none;
+        }
+        button{
+            -webkit-appearance:button;
+        }
+        button:not(:disabled){
+            cursor:pointer;
+        }
+        input[type=radio]{
+            box-sizing:border-box;
+            padding:0;
+        }
+        textarea{
+            overflow:auto;
+            resize:vertical;
+        }
+        .h3,.h4,h2,h3{
+            margin-bottom:.5rem;
+            font-weight:500;
+            line-height:1.2;
+        }
+        h2{
+            font-size:2rem;
+        }
+        .h3,h3{
+            font-size:1.75rem;
+        }
+        .h4{
+            font-size:1.5rem;
+        }
+        pre{
+            display:block;
+            font-size:87.5%;
+            color:#212529;
+        }
+        .form-labeledinput-container {
+            width: 180px;
+        }
+        .form-control{
+            display:block;
+            width:100%;
+            height:calc(1.5em + .75rem + 2px);
+            padding:.375rem .75rem;
+            font-size:1rem;
+            font-weight:400;
+            line-height:1.5;
+            color:#495057;
+            background-color:#fff;
+            background-clip:padding-box;
+            border:1px solid #ced4da;
+            border-radius:.25rem;
+            transition:border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        }
+        @media (prefers-reduced-motion:reduce){
+            .form-control{
+                transition:none;
+            }
+        }
+        .form-control:focus{
+            color:#495057;
+            background-color:#fff;
+            border-color:#80bdff;
+            outline:0;
+            box-shadow:0 0 0 .2rem rgba(0,123,255,.25);
+        }
+        .form-control::placeholder{
+            color:#6c757d;
+            opacity:1;
+        }
+        .form-control:disabled,.form-control[readonly]{
+            background-color:#e9ecef;
+            opacity:1;
+        }
+        textarea.form-control{
+            height:auto;
+        }
+        .form-group{
+            margin-bottom:1rem;
+        }
+        .btn{
+            display:inline-block;
+            font-weight:400;
+            color:#212529;
+            text-align:center;
+            vertical-align:middle;
+            cursor:pointer;
+            -webkit-user-select:none;
+            -moz-user-select:none;
+            -ms-user-select:none;
+            user-select:none;
+            background-color:transparent;
+            border:1px solid transparent;
+            padding:.375rem .75rem;
+            font-size:1rem;
+            line-height:1.5;
+            border-radius:.25rem;
+            transition:color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        }
+        @media (prefers-reduced-motion:reduce){
+            .btn{
+                transition:none;
+            }
+        }
+        .btn:hover{
+            color:#212529;
+            text-decoration:none;
+        }
+        .btn:focus{
+            outline:0;
+            box-shadow:0 0 0 .2rem rgba(0,123,255,.25);
+        }
+        .btn:disabled{
+            opacity:.65;
+        }
+        .btn-success{
+            color:#fff;
+            background-color:#28a745;
+            border-color:#28a745;
+        }
+        .btn-success:hover{
+            color:#fff;
+            background-color:#218838;
+            border-color:#1e7e34;
+        }
+        .btn-success:focus{
+            color:#fff;
+            background-color:#218838;
+            border-color:#1e7e34;
+            box-shadow:0 0 0 .2rem rgba(72,180,97,.5);
+        }
+        .btn-success:disabled{
+            color:#fff;
+            background-color:#28a745;
+            border-color:#28a745;
+        }
+        .btn-success:not(:disabled):not(.disabled):active{
+            color:#fff;
+            background-color:#1e7e34;
+            border-color:#1c7430;
+        }
+        .btn-success:not(:disabled):not(.disabled):active:focus{
+            box-shadow:0 0 0 .2rem rgba(72,180,97,.5);
+        }
+        .btn-dark{
+            color:#fff;
+            background-color:#343a40;
+            border-color:#343a40;
+        }
+        .btn-dark:hover{
+            color:#fff;
+            background-color:#23272b;
+            border-color:#1d2124;
+        }
+        .btn-dark:focus{
+            color:#fff;
+            background-color:#23272b;
+            border-color:#1d2124;
+            box-shadow:0 0 0 .2rem rgba(82,88,93,.5);
+        }
+        .btn-dark:disabled{
+            color:#fff;
+            background-color:#343a40;
+            border-color:#343a40;
+        }
+        .btn-dark:has(input:checked), .btn-dark:not(:disabled):not(.disabled).active,.btn-dark:not(:disabled):not(.disabled):active{
+            color:#fff;
+            background-color:#1d2124;
+            border-color:#171a1d;
+        }
+        .btn-dark:not(:disabled):not(.disabled).active:focus,.btn-dark:not(:disabled):not(.disabled):active:focus{
+            box-shadow:0 0 0 .2rem rgba(82,88,93,.5);
+        }
+        .collapse:not(.show){
+            display:none;
+        }
+        .btn-group{
+            position:relative;
+            display:-ms-inline-flexbox;
+            display:inline-flex;
+            vertical-align:middle;
+            margin-bottom: 20px;
+        }
+        .btn-group>.btn{
+            position:relative;
+            -ms-flex:1 1 auto;
+            flex:1 1 auto;
+        }
+        .btn-group>.btn:hover{
+            z-index:1;
+        }
+        .btn-group>.btn.active,.btn-group>.btn:active,.btn-group>.btn:focus{
+            z-index:1;
+        }
+        .btn-group>.btn:not(:first-child){
+            margin-left:-1px;
+        }
+        .btn-group>.btn:not(:last-child):not(.dropdown-toggle){
+            border-top-right-radius:0;
+            border-bottom-right-radius:0;
+        }
+        .btn-group>.btn:not(:first-child){
+            border-top-left-radius:0;
+            border-bottom-left-radius:0;
+        }
+        .btn-group-toggle>.btn{
+            margin-bottom:0;
+        }
+        .btn-group-toggle>.btn input[type=radio]{
+            position:absolute;
+            clip:rect(0,0,0,0);
+            pointer-events:none;
+        }
+        .jumbotron{
+            padding: 15px 1rem;
+            margin-bottom:2rem;
+            background-color:#e9ecef;
+            border-radius:.3rem;
+        }
+        @media (min-width:576px){
+            .jumbotron{
+                padding:15px 2rem;
+            }
+        }
+        .mt-1{
+            margin-top:.25rem!important;
+        }
+        .text-monospace{
+            font-family:SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace!important;
+        }
+        @media print{
+            *,::after,::before{
+                text-shadow:none!important;
+                box-shadow:none!important;
+            }
+            pre{
+                white-space:pre-wrap!important;
+            }
+            pre{
+                border:1px solid #adb5bd;
+                page-break-inside:avoid;
+            }
+            h2,h3{
+                orphans:3;
+                widows:3;
+            }
+            h2,h3{
+                page-break-after:avoid;
+            }
+        }
+        /*! CSS Used from: Embedded */
+        .h3,.h4,h2,h3{
+            font-family:Alegreya,Helvetica,Arial,sans-serif;
+            text-rendering:optimizeLegibility;
+        }
+        .h3,.h4,h2,h3{
+            font-weight:700;
+        }
+        /*! CSS Used fontfaces */
+        @font-face{
+            font-family:'Alegreya';
+            font-style:italic;
+            font-weight:500;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaSrEBBsBhlBjvfkSLk3abBFkvpkARTPlbSv5qsmSW1rw.woff2) format('woff2');
+            unicode-range:U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:italic;
+            font-weight:500;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaSrEBBsBhlBjvfkSLk3abBFkvpkARTPlbSv5qlmSW1rw.woff2) format('woff2');
+            unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:italic;
+            font-weight:500;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaSrEBBsBhlBjvfkSLk3abBFkvpkARTPlbSv5qtmSW1rw.woff2) format('woff2');
+            unicode-range:U+1F00-1FFF;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:italic;
+            font-weight:500;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaSrEBBsBhlBjvfkSLk3abBFkvpkARTPlbSv5qimSW1rw.woff2) format('woff2');
+            unicode-range:U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:italic;
+            font-weight:500;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaSrEBBsBhlBjvfkSLk3abBFkvpkARTPlbSv5qumSW1rw.woff2) format('woff2');
+            unicode-range:U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:italic;
+            font-weight:500;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaSrEBBsBhlBjvfkSLk3abBFkvpkARTPlbSv5qvmSW1rw.woff2) format('woff2');
+            unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:italic;
+            font-weight:500;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaSrEBBsBhlBjvfkSLk3abBFkvpkARTPlbSv5qhmSU.woff2) format('woff2');
+            unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:normal;
+            font-weight:400;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaBrEBBsBhlBjvfkSLsx6jx4w.woff2) format('woff2');
+            unicode-range:U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:normal;
+            font-weight:400;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaBrEBBsBhlBjvfkSLlx6jx4w.woff2) format('woff2');
+            unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:normal;
+            font-weight:400;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaBrEBBsBhlBjvfkSLtx6jx4w.woff2) format('woff2');
+            unicode-range:U+1F00-1FFF;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:normal;
+            font-weight:400;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaBrEBBsBhlBjvfkSLix6jx4w.woff2) format('woff2');
+            unicode-range:U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:normal;
+            font-weight:400;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaBrEBBsBhlBjvfkSLux6jx4w.woff2) format('woff2');
+            unicode-range:U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:normal;
+            font-weight:400;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaBrEBBsBhlBjvfkSLvx6jx4w.woff2) format('woff2');
+            unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:normal;
+            font-weight:400;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaBrEBBsBhlBjvfkSLhx6g.woff2) format('woff2');
+            unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:normal;
+            font-weight:700;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaBrEBBsBhlBjvfkSLsx6jx4w.woff2) format('woff2');
+            unicode-range:U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:normal;
+            font-weight:700;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaBrEBBsBhlBjvfkSLlx6jx4w.woff2) format('woff2');
+            unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:normal;
+            font-weight:700;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaBrEBBsBhlBjvfkSLtx6jx4w.woff2) format('woff2');
+            unicode-range:U+1F00-1FFF;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:normal;
+            font-weight:700;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaBrEBBsBhlBjvfkSLix6jx4w.woff2) format('woff2');
+            unicode-range:U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:normal;
+            font-weight:700;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaBrEBBsBhlBjvfkSLux6jx4w.woff2) format('woff2');
+            unicode-range:U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:normal;
+            font-weight:700;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaBrEBBsBhlBjvfkSLvx6jx4w.woff2) format('woff2');
+            unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+        }
+        @font-face{
+            font-family:'Alegreya';
+            font-style:normal;
+            font-weight:700;
+            src:url(https://fonts.gstatic.com/s/alegreya/v36/4UaBrEBBsBhlBjvfkSLhx6g.woff2) format('woff2');
+            unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+        }
+    </style>
+</html>
